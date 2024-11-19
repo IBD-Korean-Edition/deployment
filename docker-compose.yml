@@ -1,0 +1,63 @@
+version: "3.8"
+
+services:
+  # Database Service
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  # Backend Service
+  backend:
+    build:
+      context: ./backend
+    command: bash -c "python manage.py makemigrations Admin && python manage.py makemigrations Item && python manage.py makemigrations Student && python manage.py makemigrations RoomWithItems && python manage.py makemigrations RoomToRent && python manage.py makemigrations Building && python manage.py makemigrations Faculty && python manage.py makemigrations Booking && python manage.py makemigrations Login && python manage.py migrate && python manage.py populate_db && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_NAME=postgres
+      - DATABASE_USER=myuser
+      - DATABASE_PASSWORD=mypassword
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+
+  # Frontend Service
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_BACKEND_URL=http://localhost:8000
+    stdin_open: true
+    tty: true
+
+  # pgAdmin Service
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    depends_on:
+      - db
+    ports:
+      - "5051:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: joachim.szewior@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    restart: always
+
+volumes:
+  postgres_data:

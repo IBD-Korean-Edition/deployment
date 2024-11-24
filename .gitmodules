@@ -3,4 +3,4 @@
 	url = https://github.com/IBD-Korean-Edition/frontend.git
 [submodule "backend"]
 	path = backend
-	url = https://github.com/IBD-Korean-Edition/backend.git
+	url = https://github.com/Joaszek/backend.git
